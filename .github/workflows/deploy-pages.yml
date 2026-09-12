@@ -1,6 +1,6 @@
 # Despliega EBM-9000 en GitHub Pages en cada push a main.
 # Requisito (una sola vez): Settings → Pages → Build and deployment → Source: "GitHub Actions".
-# La acción configure-pages intenta habilitar Pages automáticamente si aún no lo está.
+# Después, vuelve a ejecutar este flujo (Actions → Re-run jobs) o haz un nuevo push.
 name: Desplegar en GitHub Pages
 
 on:
@@ -29,9 +29,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configurar GitHub Pages
+        id: pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
+        continue-on-error: true
+
+      - name: Pages todavía no está habilitado
+        if: steps.pages.outcome == 'failure'
+        run: |
+          echo "::error title=Habilita GitHub Pages::GitHub Pages aún no está habilitado en este repositorio. Ve a Settings → Pages → Build and deployment → Source y elige 'GitHub Actions'. Luego vuelve a ejecutar este flujo (Re-run jobs) o haz un nuevo push a main."
+          exit 1
 
       - name: Empaquetar el sitio (raíz del repositorio)
         uses: actions/upload-pages-artifact@v3
