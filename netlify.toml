@@ -1,0 +1,16 @@
+# EBM-9000 · Netlify
+# Sitio 100 % estático: no hay comando de build; se publica la raíz del repositorio.
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/imagenes_creditos/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
