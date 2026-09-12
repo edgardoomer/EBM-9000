@@ -1,6 +1,7 @@
 # Despliega EBM-9000 en GitHub Pages en cada push a main.
 # Requisito (una sola vez): Settings → Pages → Build and deployment → Source: "GitHub Actions".
-# Después, vuelve a ejecutar este flujo (Actions → Re-run jobs) o haz un nuevo push.
+# Si Pages no está habilitado (por ejemplo, porque el sitio se publica en Netlify), el flujo
+# termina con un aviso y omite el despliegue en lugar de fallar.
 name: Desplegar en GitHub Pages
 
 on:
@@ -35,17 +36,23 @@ jobs:
           enablement: true
         continue-on-error: true
 
-      - name: Pages todavía no está habilitado
+      - name: Pages todavía no está habilitado (se omite el despliegue)
         if: steps.pages.outcome == 'failure'
         run: |
-          echo "::error title=Habilita GitHub Pages::GitHub Pages aún no está habilitado en este repositorio. Ve a Settings → Pages → Build and deployment → Source y elige 'GitHub Actions'. Luego vuelve a ejecutar este flujo (Re-run jobs) o haz un nuevo push a main."
-          exit 1
+          echo "::warning title=GitHub Pages no habilitado::Se omitió el despliegue en Pages. Para activarlo: Settings → Pages → Build and deployment → Source: 'GitHub Actions' y vuelve a ejecutar el flujo. Si publicas en Netlify, puedes ignorar este aviso."
+          {
+            echo "## ⚠️ GitHub Pages no está habilitado"
+            echo "Se omitió el despliegue. Para activarlo: **Settings → Pages → Build and deployment → Source: GitHub Actions** y vuelve a ejecutar este flujo."
+            echo "Si el sitio se publica en Netlify, este aviso se puede ignorar (o desactivar el flujo en Actions)."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Empaquetar el sitio (raíz del repositorio)
+        if: steps.pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
 
       - name: Desplegar
+        if: steps.pages.outcome == 'success'
         id: deployment
         uses: actions/deploy-pages@v4
