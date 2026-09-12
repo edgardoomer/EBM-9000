@@ -1,0 +1,21 @@
+CREDITOS
+
+ING. EDGAR IZURIETA
+Ingeniero en Petróleos | Especialista en Datos e Inteligencia Artificial | Aspirante a Ingeniero de Reservorios / EOR | Creador de Contenido
+
+links:
+https://www.linkedin.com/in/edgarfer/
+https://www.instagram.com/doom.petrolero
+https://edgarpetrolero.duckdns.org/
+https://github.com/edgardoomer
+
+*OBJETIVO Y RESUMEN DEL PROYECTO*
+- Llena todo en 150 palabras +- 25 palabras
+
+OBJETIVO
+Explicar de forma didáctica e interactiva la Ecuación de Balance de Materiales (EBM), mostrando qué pregunta responde cada término y cómo la expansión de los fluidos y la roca, la intrusión de agua y la inyección compensan el vaciamiento que produce la extracción de petróleo, gas y agua.
+
+RESUMEN
+EBM-9000 es una aplicación web educativa que anima, en cinco minutos, la vida productiva de un yacimiento tipo tanque: la presión declina, el petróleo y el gas se expanden, el acuífero avanza y los pozos producen hasta un punto muerto por depletación o por producción de agua. El usuario puede reproducir, pausar y recorrer la simulación, usar el ejemplo incluido o ingresar sus propios datos, y consultar en la pestaña de teoría la formulación general de Schilthuis presentada por Fanchi, la simbología, la sustitución numérica con los datos simulados y la conversión automática entre unidades de campo y Sistema Internacional. Está construida con HTML, CSS y JavaScript puros para desplegarse directamente desde GitHub Pages o Netlify.
+
+(Objetivo + resumen: 164 palabras)

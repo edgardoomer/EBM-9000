@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EBM-9000 · Ecuación de Balance de Materiales</title>
+  <meta name="description" content="EBM-9000: simulación didáctica e interactiva de la Ecuación de Balance de Materiales (Schilthuis) para yacimientos de petróleo y gas, con teoría, simbología y conversión de unidades.">
+  <meta name="theme-color" content="#3F6FA6">
+  <link rel="icon" type="image/png" href="imagenes_creditos/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="#" id="brand-link">
+    <img src="imagenes_creditos/logo.png" alt="Logo EBM-9000">
+    <span>
+      <span class="name">EBM-9000</span>
+      <span class="sub">Ecuación de Balance de Materiales · simulador didáctico</span>
+    </span>
+  </a>
+  <nav class="tabs" role="tablist" aria-label="Secciones">
+    <button class="tab-btn active" role="tab" data-tab="sim" aria-selected="true">Simulación</button>
+    <button class="tab-btn" role="tab" data-tab="theory" aria-selected="false">Teoría y autores</button>
+    <button class="tab-btn" role="tab" data-tab="credits" aria-selected="false">Créditos</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ==================== SIMULACIÓN ==================== -->
+  <section id="tab-sim" class="tab active" role="tabpanel">
+    <div class="sim" id="sim">
+      <div class="sim-controls">
+        <div class="seg" id="dataset-seg" title="Conjunto de datos">
+          <button id="btn-example" class="active">Ejemplo</button>
+          <button id="btn-user">Mis datos</button>
+        </div>
+        <button class="btn" id="btn-play" aria-label="Reproducir o pausar la simulación">▶ Reproducir</button>
+        <button class="btn secondary icon" id="btn-restart" title="Reiniciar la simulación" aria-label="Reiniciar">↺</button>
+        <select class="ctl" id="speed" title="Velocidad de reproducción">
+          <option value="0.5">0.5× · 10 min</option>
+          <option value="1" selected>1× · 5 min</option>
+          <option value="2">2× · 2.5 min</option>
+          <option value="4">4× · 75 s</option>
+        </select>
+        <div class="seg sm units-seg" title="Sistema de unidades">
+          <button data-sys="field" class="active">Campo</button>
+          <button data-sys="si">SI</button>
+        </div>
+        <span class="spacer"></span>
+        <span class="badge" id="phase-badge"><span class="dot"></span><span id="phase-text">Listo para simular</span></span>
+        <button class="btn secondary icon" id="btn-full" title="Pantalla completa" aria-label="Pantalla completa">⛶</button>
+      </div>
+
+      <div class="dash" id="dash" aria-label="Variables en vivo"></div>
+
+      <div class="sim-main">
+        <div class="card tank-wrap" id="tank-wrap">
+          <svg id="tank" viewBox="0 0 900 620" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Yacimiento tipo tanque"></svg>
+          <div class="end-banner" id="end-banner"></div>
+          <div class="tank-note">Modelo de tanque: se representan <b>volúmenes</b> a condiciones de yacimiento, no la posición real de los fluidos. Pasa el puntero sobre cada elemento.</div>
+        </div>
+        <div class="card panel" id="panel"></div>
+      </div>
+
+      <div class="card timeline">
+        <div class="timeline-top">
+          <span class="tlabel" id="time-label">Año 0.0 de 25</span>
+          <span class="muted small" id="time-sub"></span>
+          <span class="spacer" style="flex:1"></span>
+          <span class="small muted">Arrastra para recorrer la simulación</span>
+        </div>
+        <input type="range" id="time-slider" min="0" max="10000" value="0" step="1" aria-label="Tiempo de la simulación">
+        <div class="events" id="events"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TEORÍA Y AUTORES ==================== -->
+  <section id="tab-theory" class="tab" role="tabpanel">
+    <div class="theory">
+      <div class="theory-top">
+        <h1>Teoría: la Ecuación de Balance de Materiales</h1>
+        <span class="spacer"></span>
+        <span class="small muted">Unidades:</span>
+        <div class="seg units-seg" title="Sistema de unidades">
+          <button data-sys="field" class="active">Campo (inglés)</button>
+          <button data-sys="si">Sistema Internacional</button>
+        </div>
+      </div>
+      <nav class="toc" aria-label="Contenido">
+        <a href="#t-intro">1. Qué es</a><a href="#t-usos">2. Para qué sirve</a><a href="#t-general">3. Ecuación general</a>
+        <a href="#t-terminos">4. Términos de expansión</a><a href="#t-compacta">5. Forma compacta y significado</a><a href="#t-supuestos">6. Suposiciones</a>
+        <a href="#t-gas">7. Yacimiento de gas</a><a href="#t-simb">8. Simbología</a><a href="#t-datos">9. Con los datos de la simulación</a>
+        <a href="#t-modelo">10. Cómo simula esta app</a><a href="#t-autores">11. Autores</a>
+      </nav>
+
+      <section id="t-intro">
+        <h2>1. ¿Qué es el balance de materiales?</h2>
+        <p>La <b>ley de conservación de la masa</b> es la base de los cálculos de balance de materiales. Un balance de materiales es una <b>contabilidad del material que entra y sale de un sistema</b>. El cálculo trata al yacimiento como un <b>gran tanque</b> y usa cantidades que <em>sí</em> se pueden medir para determinar la cantidad de un material que <em>no</em> se puede medir directamente.</p>
+        <p>Las cantidades medibles son: los <b>volúmenes acumulados producidos</b> de petróleo, agua y gas; <b>presiones de yacimiento</b> precisas; y las <b>propiedades de los fluidos</b> (PVT) obtenidas de muestras de los fluidos producidos. Con ellas se determinan, por ejemplo, el petróleo original en sitio <i>N</i>, el gas original <i>G</i> o la intrusión de agua <i>W<sub>e</sub></i>.</p>
+        <div class="callout blue">💡 En la pestaña <b>Simulación</b> el tanque de la izquierda es exactamente esa idea: un recipiente cuyo volumen poroso está ocupado por gas, petróleo y agua. Cuando la presión cae, los fluidos y la roca se expanden y esa expansión es la que "empuja" la producción.</div>
+      </section>
+
+      <section id="t-usos">
+        <h2>2. ¿Para qué sirve?</h2>
+        <ul>
+          <li><b>Estimar volúmenes de forma independiente.</b> Da una estimación del volumen de petróleo, agua y gas del yacimiento que se puede comparar con la estimación volumétrica (mapas, registros) o con la de un simulador numérico. Comparar la volumetría calculada por un simulador con la de un estudio de balance de materiales es una forma de <b>validar</b> ambas con fuentes independientes.</li>
+          <li><b>Identificar los mecanismos de empuje.</b> La magnitud de cada término de la ecuación indica la contribución relativa de los distintos mecanismos de producción que actúan en el yacimiento (expansión del petróleo y su gas disuelto, capa de gas, acuífero, compactación, inyección).</li>
+          <li><b>Predecir el comportamiento futuro</b> del yacimiento y ayudar a estimar la <b>eficiencia de recuperación</b> acumulada.</li>
+        </ul>
+        <p class="small muted">Referencias clásicas sobre estos usos: Dake [2001], Craft <i>et al.</i> [1991], Ahmed [2000], Towler [2002] y Pletcher [2002] (ver Bibliografía).</p>
+      </section>
+
+      <section id="t-general">
+        <h2>3. Ecuación general para un yacimiento de petróleo</h2>
+        <p>La forma de la ecuación depende de si el yacimiento es predominantemente de <b>petróleo</b> o de <b>gas</b>. Para un yacimiento de petróleo, la ecuación general es la <b>ecuación de balance de materiales de Schilthuis</b> (1936), expresada en la forma dada por Guerrero (1966):</p>
+        <div class="eq"><span class="eqn">(2.6)</span><span class="tex">\begin{aligned}
+&amp; N\left(B_t - B_{ti}\right) + N m B_{ti}\left(\frac{B_{gc} - B_{gi}}{B_{gi}}\right) \\
+&amp; + N \frac{B_{ti} S_{wio}}{1 - S_{wio}}\left(\frac{B_{tw} - B_{twi}}{B_{twi}}\right) + N \frac{m B_{ti} S_{wig}}{1 - S_{wig}}\left(\frac{B_{tw} - B_{twi}}{B_{twi}}\right) \\
+&amp; + N\left(\frac{1}{1 - S_{wio}} + \frac{m}{1 - S_{wig}}\right) B_{ti}\, c_f\, \Delta P \\
+&amp; = N_p B_o - N_p R_{so} B_g + \left[G_{ps} B_g + G_{pc} B_{gc} - G_i B_g'\right] - \left(W_e + W_i - W_p\right) B_w
+\end{aligned}</span></div>
+        <p>Esta ecuación se deduce <b>conservando el volumen</b> (no la masa directamente) y por eso Dake [2001] la llama <b>balance de materiales volumétrico</b>. Se considera una ecuación <b>general</b> porque se puede aplicar a un yacimiento de petróleo <b>con capa de gas y con acuífero</b>; si no hay capa de gas basta con hacer <i>m</i> = 0, y si no hay acuífero ni inyección, <i>W<sub>e</sub></i> = <i>W<sub>i</sub></i> = <i>G<sub>i</sub></i> = 0.</p>
+        <p>Cada término tiene un significado físico: el <b>lado izquierdo</b> reúne los <b>cambios de volumen</b> (expansiones) y el <b>lado derecho</b> la <b>producción y la inyección</b> de fluidos. Antes de mirar la tabla de significados, conviene nombrar cada expansión.</p>
+      </section>
+
+      <section id="t-terminos">
+        <h2>4. Los términos de expansión</h2>
+        <p>Para mostrar el significado físico de la ecuación (2.6) se definen primero los términos <i>D</i>, que son <b>cambios de volumen por cada barril de petróleo original</b> (RB/STB):</p>
+        <div class="eq"><span class="eqn">(2.7)</span><span class="tex">\begin{aligned}
+D_o &amp;= B_t - B_{ti}, \\[2pt]
+D_{go} &amp;= m B_{ti}\left(\frac{B_{gc} - B_{gi}}{B_{gi}}\right), \\[2pt]
+D_w &amp;= \frac{B_{ti} S_{wio}}{1 - S_{wio}}\left(\frac{B_{tw} - B_{twi}}{B_{twi}}\right), \\[2pt]
+D_{gw} &amp;= \frac{m B_{ti} S_{wig}}{1 - S_{wig}}\left(\frac{B_{tw} - B_{twi}}{B_{twi}}\right), \\[2pt]
+D_r &amp;= \left(\frac{1}{1 - S_{wio}} + \frac{m}{1 - S_{wig}}\right) B_{ti}\, c_f\, \Delta P
+\end{aligned}</span></div>
+        <div class="termgrid">
+          <div class="termcard" style="border-top-color:#7A4E2D"><b>D<sub>o</sub></b> · petróleo y su gas disuelto<div class="q">¿Cuánto cambió el volumen del petróleo inicial y su gas asociado?</div><p class="small">Usa el factor volumétrico <b>total</b> B<sub>t</sub> = B<sub>o</sub> + (R<sub>soi</sub> − R<sub>so</sub>)·B<sub>g</sub>: el petróleo que queda más el gas que se liberó de él. Por encima del punto de burbuja B<sub>t</sub> = B<sub>o</sub> y D<sub>o</sub> es solo la expansión del líquido; por debajo, el gas liberado domina.</p></div>
+          <div class="termcard" style="border-top-color:#E8C86A"><b>D<sub>go</sub></b> · gas libre (capa de gas)<div class="q">¿Cuánto cambió el volumen del gas libre?</div><p class="small">La capa de gas inicial ocupa <i>m</i>·N·B<sub>ti</sub> barriles de yacimiento; al caer la presión cada pie cúbico ocupa más (B<sub>gc</sub> &gt; B<sub>gi</sub>) y la capa se expande hacia la zona de petróleo.</p></div>
+          <div class="termcard" style="border-top-color:#8FB4D9"><b>D<sub>w</sub></b>, <b>D<sub>gw</sub></b> · agua connata<div class="q">¿Cuánto cambió el volumen del agua connata inicial?</div><p class="small">El agua que ya estaba en los poros de la zona de petróleo (S<sub>wio</sub>) y de la capa de gas (S<sub>wig</sub>) también se expande. Con B<sub>tw</sub> ≈ B<sub>w</sub>, el paréntesis vale c<sub>w</sub>·ΔP.</p></div>
+          <div class="termcard" style="border-top-color:#A08A72"><b>D<sub>r</sub></b> · roca (volumen poroso)<div class="q">¿Cuánto cambió el volumen poroso de la formación?</div><p class="small">Al bajar la presión del fluido, la roca soporta más carga y el poro se reduce (compresibilidad c<sub>f</sub>). Ese volumen "perdido" expulsa fluido hacia los pozos.</p></div>
+        </div>
+      </section>
+
+      <section id="t-compacta">
+        <h2>5. Forma compacta y significado físico de cada término</h2>
+        <p>Sustituyendo (2.7) en (2.6) se obtiene la ecuación general en la forma:</p>
+        <div class="eq"><span class="eqn">(2.8)</span><span class="tex">N\left[D_o + D_{go} + D_w + D_{gw} + D_r\right] = N_p B_o - N_p R_{so} B_g + \left[G_{ps} B_g + G_{pc} B_{gc} - G_i B_g'\right] - \left(W_e + W_i - W_p\right) B_w</span></div>
+        <p>Los términos del <b>lado derecho</b> representan la <b>producción e inyección de fluidos</b>; los del <b>lado izquierdo</b> representan <b>cambios de volumen</b>. Su significado físico (Tabla 2-1 de Fanchi) convertido en la <b>pregunta</b> que responde cada término:</p>
+        <div class="tbl-wrap"><table class="tbl" id="tbl-significado">
+          <thead><tr><th>Término</th><th>Significado físico</th><th>Pregunta a la que responde</th></tr></thead>
+          <tbody>
+            <tr><td class="k">N·D<sub>o</sub></td><td>Cambio de volumen del petróleo inicial y su gas asociado</td><td>¿Cuánto cambió el volumen del petróleo inicial y su gas asociado?</td></tr>
+            <tr><td class="k">N·D<sub>go</sub></td><td>Cambio de volumen del gas libre</td><td>¿Cuánto cambió el volumen del gas libre?</td></tr>
+            <tr><td class="k">N·(D<sub>w</sub> + D<sub>gw</sub>)</td><td>Cambio de volumen del agua connata inicial</td><td>¿Cuánto cambió el volumen del agua connata inicial?</td></tr>
+            <tr><td class="k">N·D<sub>r</sub></td><td>Cambio del volumen poroso de la formación</td><td>¿Cuánto cambió el volumen poroso de la formación?</td></tr>
+            <tr><td class="k">N<sub>p</sub>·B<sub>o</sub></td><td>Producción acumulada de petróleo</td><td>¿Cuánto volumen de yacimiento ocupa el petróleo producido acumulado?</td></tr>
+            <tr><td class="k">N<sub>p</sub>·R<sub>so</sub>·B<sub>g</sub></td><td>Gas acumulado producido en solución con el petróleo</td><td>¿Cuánto gas se produjo disuelto en el petróleo? (ya está dentro de N<sub>p</sub>·B<sub>o</sub>, por eso se resta)</td></tr>
+            <tr><td class="k">G<sub>ps</sub>·B<sub>g</sub></td><td>Gas de solución acumulado producido como gas liberado</td><td>¿Cuánto gas de solución se produjo como gas liberado?</td></tr>
+            <tr><td class="k">G<sub>pc</sub>·B<sub>gc</sub></td><td>Producción acumulada de gas de la capa de gas</td><td>¿Cuánto gas de la capa de gas se ha producido?</td></tr>
+            <tr><td class="k">G<sub>i</sub>·B<sub>g</sub>′</td><td>Inyección acumulada de gas</td><td>¿Cuánto gas se ha inyectado?</td></tr>
+            <tr><td class="k">W<sub>e</sub>·B<sub>w</sub></td><td>Intrusión acumulada de agua</td><td>¿Cuánta agua ha entrado del acuífero?</td></tr>
+            <tr><td class="k">W<sub>i</sub>·B<sub>w</sub></td><td>Inyección acumulada de agua</td><td>¿Cuánta agua se ha inyectado?</td></tr>
+            <tr><td class="k">W<sub>p</sub>·B<sub>w</sub></td><td>Producción acumulada de agua</td><td>¿Cuánta agua se ha producido?</td></tr>
+          </tbody>
+        </table></div>
+        <div class="callout">📌 <b>Lectura rápida.</b> Todo lo que está a la izquierda es <b>energía del yacimiento</b> (volumen que "aparece" al expandirse fluidos y roca). Todo lo que está a la derecha es <b>volumen retirado</b> por los pozos, corregido por lo que se inyecta o entra del acuífero. En la simulación, la intrusión y la inyección se dibujan junto a las expansiones (lado izquierdo) como <i>fuentes</i> de vaciamiento: es la misma ecuación con los términos W<sub>e</sub>B<sub>w</sub>, W<sub>i</sub>B<sub>w</sub> y G<sub>i</sub>B<sub>g</sub>′ pasados de lado.</div>
+      </section>
+
+      <section id="t-supuestos">
+        <h2>6. Suposiciones de la deducción</h2>
+        <ol>
+          <li>El sistema está en <b>equilibrio de presión</b> (una sola presión media representa todo el yacimiento).</li>
+          <li>El sistema es <b>isotérmico</b>.</li>
+          <li>Los datos PVT disponibles son <b>representativos</b> de los fluidos del yacimiento.</li>
+          <li>Los datos de producción son <b>confiables</b>.</li>
+          <li>La <b>segregación gravitacional</b> de las fases se puede despreciar (el modelo de tanque no tiene dimensiones).</li>
+        </ol>
+        <p>La importancia relativa de los mecanismos de empuje que se obtiene de la ecuación (2.6) se discute en el capítulo 7 de Fanchi y, con los <i>índices de empuje</i> que deben sumar uno, en Pletcher [2002].</p>
+      </section>
+
+      <section id="t-gas">
+        <h2>7. Balance de materiales para un yacimiento de gas</h2>
+        <p>La ecuación general para un yacimiento de gas se deduce de la (2.6) reconociendo primero que la relación</p>
+        <div class="eq"><span class="eqn">(2.9)</span><span class="tex">G\, B_{gi} = N\, m\, B_{ti}</span></div>
+        <p>define el <b>gas original en sitio</b> <i>G</i> (el volumen de la capa de gas a condiciones de yacimiento es el mismo escrito con gas o con petróleo). Sustituyendo (2.9) en (2.6):</p>
+        <div class="eq"><span class="eqn">(2.10)</span><span class="tex">\begin{aligned}
+&amp; N\left(B_t - B_{ti}\right) + G B_{gi}\left(\frac{B_{gc} - B_{gi}}{B_{gi}}\right) + N \frac{B_{ti} S_{wio}}{1 - S_{wio}}\left(\frac{B_{tw} - B_{twi}}{B_{twi}}\right) \\
+&amp; + G \frac{B_{gi} S_{wig}}{1 - S_{wig}}\left(\frac{B_{tw} - B_{twi}}{B_{twi}}\right) + \left(\frac{N B_{ti}}{1 - S_{wio}} + \frac{G B_{gi}}{1 - S_{wig}}\right) c_f\, \Delta P \\
+&amp; = N_p B_o + \left[G_{ps} B_g + G_{pc} B_{gc} - G_i B_g'\right] - N_p R_{so} B_g - \left(W_e + W_i - W_p\right) B_w
+\end{aligned}</span></div>
+        <p>Como el balance de un yacimiento de gas no incluye petróleo en sitio, <i>N</i> = 0 y <i>N<sub>p</sub></i> = 0, y la ecuación se reduce a:</p>
+        <div class="eq"><span class="eqn">(2.11)</span><span class="tex">G B_{gi}\left(\frac{B_{gc} - B_{gi}}{B_{gi}}\right) + G \frac{B_{gi} S_{wig}}{1 - S_{wig}}\left(\frac{B_{tw} - B_{twi}}{B_{twi}}\right) + \left(\frac{G B_{gi}}{1 - S_{wig}}\right) c_f\, \Delta P = \left[G_{pc} B_{gc} - G_i B_g'\right] - \left(W_e + W_i - W_p\right) B_w</span></div>
+        <p>La compresibilidad del agua y la de la formación son <b>pequeñas comparadas con la del gas</b>; por eso la (2.11) suele escribirse en la forma simplificada:</p>
+        <div class="eq"><span class="eqn">(2.12)</span><span class="tex">G B_{gi}\left(\frac{B_{gc} - B_{gi}}{B_{gi}}\right) = \left[G_{pc} B_{gc} - G_i B_g'\right] - \left(W_e + W_i - W_p\right) B_w</span></div>
+        <p class="small muted">Si además no hay acuífero ni inyección, (2.12) se convierte en la conocida recta <i>P/z</i> vs <i>G<sub>p</sub></i> de los yacimientos volumétricos de gas.</p>
+      </section>
+
+      <section id="t-simb">
+        <h2>8. Simbología y unidades</h2>
+        <p>Unidades de campo entre corchetes según la nomenclatura de Fanchi; la columna SI se obtiene con las conversiones exactas 1 bbl = 0.158987 m³, 1 ft³ = 0.0283168 m³ y 1 psi = 6.894757 kPa. En la práctica hispanoamericana: STB = BN/BF (barriles normales o fiscales), SCF = PCN/PCS (pies cúbicos normales o estándar), RB = BY (barriles de yacimiento).</p>
+        <div class="tbl-wrap"><table class="tbl" id="tbl-nomen"><thead><tr><th>Símbolo</th><th>Definición</th><th id="nomen-unit-head">Unidad</th></tr></thead><tbody></tbody></table></div>
+      </section>
+
+      <section id="t-datos">
+        <h2>9. La ecuación con los datos de la simulación</h2>
+        <p>Primero la ecuación y luego su reemplazo con los datos del instante seleccionado de la simulación (el mismo que muestra la pestaña <b>Simulación</b>). Si cambias el sistema de unidades arriba, todos los valores se convierten automáticamente; los volúmenes de yacimiento resultantes se expresan en <span id="res-unit-label">MMRB</span>.</p>
+        <div class="sub-controls">
+          <span class="st" id="sub-time">Año 0.0</span>
+          <input type="range" id="sub-slider" min="0" max="10000" value="0" step="1" aria-label="Instante de la simulación">
+          <button class="btn sm secondary" id="sub-final">Ir al estado final</button>
+          <span class="small muted" id="sub-dataset">Datos: ejemplo</span>
+        </div>
+        <div id="sub-content"></div>
+      </section>
+
+      <section id="t-modelo">
+        <h2>10. ¿Cómo genera los datos esta simulación?</h2>
+        <p>EBM-9000 no resuelve un simulador numérico: usa el propio balance de materiales como <b>modelo de tanque</b>, con estas reglas didácticas:</p>
+        <ul>
+          <li>La <b>presión</b> declina desde P<sub>i</sub> hasta la presión final con una curva prescrita (rápida al inicio, más lenta al final).</li>
+          <li>Las propiedades <b>PVT</b> (B<sub>o</sub>, R<sub>so</sub>, B<sub>g</sub>, B<sub>w</sub>) se interpolan entre los valores inicial y final que das; por encima del punto de burbuja R<sub>so</sub> es constante y el petróleo solo se expande con c<sub>o</sub>. Se toma B<sub>gc</sub> = B<sub>g</sub>′ = B<sub>g</sub> y B<sub>tw</sub> = B<sub>w</sub> (sin gas disuelto en el agua).</li>
+          <li>La <b>intrusión de agua</b> sigue el modelo de estado estable de Schilthuis (proporcional a ∫(P<sub>i</sub> − P)dt), escalada para alcanzar el W<sub>e</sub> final indicado. La inyección crece linealmente desde el instante de inicio.</li>
+          <li>La <b>RGP de producción</b> y el <b>corte de agua</b> siguen curvas suaves hasta los valores finales; el gas libre producido se toma de la capa de gas y del gas liberado en proporción a los volúmenes disponibles.</li>
+          <li>En cada paso se calcula el vaciamiento total (expansiones + intrusión + inyección) y se reparte en petróleo, gas y agua producidos, de modo que la ecuación (2.8) <b>se cumple exactamente en todo instante</b>: por eso las dos barras del panel siempre miden lo mismo.</li>
+          <li>La simulación termina en el <b>punto muerto</b>: producción de agua (corte de agua ≥ 90 %) o depletación (presión de abandono).</li>
+        </ul>
+      </section>
+
+      <section id="t-autores">
+        <h2>11. Autores de la teoría</h2>
+        <div class="authors">
+          <div class="author"><b>Ralph J. Schilthuis</b><span class="yrs">Humble Oil &amp; Refining Co. · 1936</span><p class="small">Publicó "Active Oil and Reservoir Energy" (Trans. AIME 118), donde formuló por primera vez la ecuación general de balance de materiales para yacimientos de petróleo y el modelo de intrusión de agua en estado estable que lleva su nombre.</p></div>
+          <div class="author"><b>E. T. Guerrero</b><span class="yrs">Universidad de Tulsa · 1966</span><p class="small">En <i>Practical Reservoir Engineering</i> presentó la forma de la ecuación de Schilthuis que adopta Fanchi: expansiones por barril de petróleo original y producción neta a condiciones de yacimiento.</p></div>
+          <div class="author"><b>John R. Fanchi</b><span class="yrs">Colorado School of Mines · Texas Christian University · 2006</span><p class="small">Autor de <i>Principles of Applied Reservoir Simulation</i> (3.ª ed.), la fuente de esta pestaña. Reúne la ecuación general, sus términos de expansión, la Tabla 2-1 de significado físico y las formas para yacimientos de gas.</p></div>
+          <div class="author"><b>Laurence P. Dake</b><span class="yrs">Shell · 1978, 2001</span><p class="small">En <i>Fundamentals of Reservoir Engineering</i> y <i>The Practice of Reservoir Engineering</i> desarrolló la deducción volumétrica ("balance de materiales volumétrico") y su interpretación por mecanismos de empuje.</p></div>
+          <div class="author"><b>D. Havlena y A. S. Odeh</b><span class="yrs">1963–1964</span><p class="small">Reordenaron la ecuación como la <b>ecuación de una línea recta</b> (F vs. E<sub>o</sub>, E<sub>g</sub>, E<sub>f,w</sub>), el método gráfico estándar para estimar N, m y W<sub>e</sub> a partir de datos de producción.</p></div>
+          <div class="author"><b>Craft, Hawkins y Terry · Ahmed · Towler · Pletcher</b><span class="yrs">1991 · 2000 · 2002 · 2002</span><p class="small">Textos y artículos citados por Fanchi para profundizar: derivaciones paso a paso, ejemplos numéricos, índices de empuje y mejoras a los métodos de balance de materiales (efecto de acuíferos débiles y de la compresibilidad de la formación).</p></div>
+        </div>
+      </section>
+
+      <div class="biblio" id="biblio">
+        <div class="biblio-body" id="biblio-body">
+          <h3 style="margin-top:0">Bibliografía y fuentes consultadas</h3>
+          <ol>
+            <li>Fanchi, J. R. (2006). <i>Principles of Applied Reservoir Simulation</i> (3.ª ed.), cap. 2 "Basic Reservoir Analysis", sección 2.3 <i>Material Balance</i>, pp. 16–20. Gulf Professional Publishing / Elsevier, Burlington, MA. ISBN 978-0-7506-7933-6. <a href="https://shop.elsevier.com/books/principles-of-applied-reservoir-simulation/fanchi/978-0-7506-7933-6" target="_blank" rel="noopener">shop.elsevier.com</a></li>
+            <li>Schilthuis, R. J. (1936). "Active Oil and Reservoir Energy". <i>Transactions of the AIME</i>, 118(1), 33–52. <a href="https://doi.org/10.2118/936033-G" target="_blank" rel="noopener">doi:10.2118/936033-G</a></li>
+            <li>Guerrero, E. T. (1966). <i>Practical Reservoir Engineering</i>. The Petroleum Publishing Company, Tulsa, OK.</li>
+            <li>Dake, L. P. (2001). <i>The Practice of Reservoir Engineering</i> (ed. revisada). Developments in Petroleum Science 36. Elsevier, Ámsterdam. ISBN 978-0-444-50671-9. <a href="https://shop.elsevier.com/books/the-practice-of-reservoir-engineering-revised-edition/dake/978-0-444-50670-2" target="_blank" rel="noopener">shop.elsevier.com</a></li>
+            <li>Dake, L. P. (1978). <i>Fundamentals of Reservoir Engineering</i>. Developments in Petroleum Science 8. Elsevier, Ámsterdam.</li>
+            <li>Craft, B. C., Hawkins, M. F. y Terry, R. E. (1991). <i>Applied Petroleum Reservoir Engineering</i> (2.ª ed.). Prentice Hall, Englewood Cliffs, NJ.</li>
+            <li>Ahmed, T. (2000). <i>Reservoir Engineering Handbook</i>. Gulf Publishing Company, Houston, TX.</li>
+            <li>Towler, B. F. (2002). <i>Fundamental Principles of Reservoir Engineering</i>. SPE Textbook Series Vol. 8. Society of Petroleum Engineers, Richardson, TX. ISBN 978-1-55563-092-8. <a href="https://store.spe.org/Fundamental-Principles-of-Reservoir-Engineering-P27.aspx" target="_blank" rel="noopener">store.spe.org</a></li>
+            <li>Pletcher, J. L. (2002). "Improvements to Reservoir Material-Balance Methods". <i>SPE Reservoir Evaluation &amp; Engineering</i>, 5(1), 49–59. SPE-75354-PA. <a href="https://doi.org/10.2118/75354-PA" target="_blank" rel="noopener">doi:10.2118/75354-PA</a></li>
+            <li>Havlena, D. y Odeh, A. S. (1963). "The Material Balance as an Equation of a Straight Line". <i>Journal of Petroleum Technology</i>, 15(8), 896–900. SPE-559-PA. <a href="https://doi.org/10.2118/559-PA" target="_blank" rel="noopener">doi:10.2118/559-PA</a></li>
+            <li>Havlena, D. y Odeh, A. S. (1964). "The Material Balance as an Equation of a Straight Line — Part II, Field Cases". <i>Journal of Petroleum Technology</i>, 16(7), 815–822. SPE-869-PA. <a href="https://doi.org/10.2118/869-PA" target="_blank" rel="noopener">doi:10.2118/869-PA</a></li>
+            <li>Society of Petroleum Engineers. <i>The SI Metric System of Units and SPE Metric Standard</i>. Factores de conversión usados en esta app. <a href="https://www.spe.org/en/industry/unit-conversion-factors/" target="_blank" rel="noopener">spe.org</a></li>
+          </ol>
+        </div>
+        <button class="biblio-bar" id="biblio-bar" aria-expanded="false" aria-controls="biblio-body"><span>📚 Bibliografía</span><span class="arrow">▲</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== CRÉDITOS ==================== -->
+  <section id="tab-credits" class="tab" role="tabpanel">
+    <div class="credits">
+      <div class="card hero">
+        <img src="imagenes_creditos/logo.png" alt="Logo EBM-9000">
+        <div>
+          <h1>EBM-9000</h1>
+          <div class="tag">Simulador didáctico de la Ecuación de Balance de Materiales</div>
+          <h3>Objetivo</h3>
+          <p>Explicar de forma didáctica e interactiva la Ecuación de Balance de Materiales (EBM), mostrando qué pregunta responde cada término y cómo la expansión de los fluidos y la roca, la intrusión de agua y la inyección compensan el vaciamiento que produce la extracción de petróleo, gas y agua.</p>
+          <h3>Resumen</h3>
+          <p>EBM-9000 es una aplicación web educativa que anima, en cinco minutos, la vida productiva de un yacimiento tipo tanque: la presión declina, el petróleo y el gas se expanden, el acuífero avanza y los pozos producen hasta un punto muerto por depletación o por producción de agua. El usuario puede reproducir, pausar y recorrer la simulación, usar el ejemplo incluido o ingresar sus propios datos, y consultar en la pestaña de teoría la formulación general de Schilthuis presentada por Fanchi, la simbología, la sustitución numérica con los datos simulados y la conversión automática entre unidades de campo y Sistema Internacional. Está construida con HTML, CSS y JavaScript puros para desplegarse directamente desde GitHub Pages o Netlify.</p>
+        </div>
+      </div>
+
+      <div class="card author-card">
+        <img src="imagenes_creditos/foto.jpg" alt="Fotografía de Edgar Izurieta">
+        <div>
+          <h2>Ing. Edgar Izurieta</h2>
+          <div class="role">Ingeniero en Petróleos | Especialista en Datos e Inteligencia Artificial | Aspirante a Ingeniero de Reservorios / EOR | Creador de Contenido</div>
+          <div class="links">
+            <a class="btn" href="https://www.linkedin.com/in/edgarfer/" target="_blank" rel="noopener">in · LinkedIn</a>
+            <a class="btn" href="https://www.instagram.com/doom.petrolero" target="_blank" rel="noopener">◎ Instagram · @doom.petrolero</a>
+            <a class="btn" href="https://edgarpetrolero.duckdns.org/" target="_blank" rel="noopener">🌐 Página web</a>
+            <a class="btn" href="https://github.com/edgardoomer" target="_blank" rel="noopener">⌥ GitHub · edgardoomer</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="two">
+        <a class="card visit" href="https://edgarpetrolero.duckdns.org/" target="_blank" rel="noopener" style="text-decoration:none">
+          <img class="qr" src="imagenes_creditos/edgar_web.png" alt="Código QR de la página web de Edgar Izurieta">
+          <span class="cap">Visita mi página web</span>
+          <span class="url">edgarpetrolero.duckdns.org · escanea el QR o haz clic</span>
+        </a>
+        <a class="card visit" href="https://www.instagram.com/doom.petrolero" target="_blank" rel="noopener" style="text-decoration:none">
+          <img class="insta" src="imagenes_creditos/perfil_insta.png" alt="Perfil de Instagram PetroDoom - Doom Slayer Unit">
+          <span class="cap">Visita mi página de creación de contenido</span>
+          <span class="url">instagram.com/doom.petrolero</span>
+        </a>
+      </div>
+
+      <div class="card sources">
+        <h3>Fuentes y herramientas</h3>
+        <ul>
+          <li><b>Teoría:</b> Fanchi, J. R. (2006). <i>Principles of Applied Reservoir Simulation</i>, 3.ª ed., sección 2.3 (Elsevier). Ecuación original de Schilthuis (1936); ver la bibliografía completa en la pestaña de teoría.</li>
+          <li><b>Tecnología:</b> HTML, CSS y JavaScript sin dependencias de compilación; ecuaciones renderizadas con <a href="https://katex.org/" target="_blank" rel="noopener">KaTeX</a>; tipografías Exo 2 e Inter (Google Fonts).</li>
+          <li><b>Despliegue:</b> GitHub Pages (flujo de trabajo incluido en el repositorio) o Netlify conectado al repositorio <a href="https://github.com/edgardoomer/EBM-9000" target="_blank" rel="noopener">edgardoomer/EBM-9000</a>.</li>
+        </ul>
+      </div>
+      <div class="footer">© 2026 Edgar Izurieta · EBM-9000 · Publicado bajo licencia MIT · Hecho con fines educativos</div>
+    </div>
+  </section>
+</main>
+
+<div id="tooltip" role="tooltip" aria-hidden="true"></div>
+<div class="toast" id="toast"></div>
+
+<!-- Modal "Mis datos" -->
+<div class="modal" id="modal-data" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="modal-title">Mis datos de simulación</h2>
+      <span class="small muted" id="modal-units"></span>
+      <button class="btn secondary icon x" id="modal-close" aria-label="Cerrar">✕</button>
+    </div>
+    <p class="small muted" style="margin:0 0 6px">Ingresa el estado <b>inicial</b> (P<sub>i</sub>) y el estado <b>final</b> (P<sub>f</sub>) de tu yacimiento; la app interpola las propiedades entre ambos y reparte la producción para que el balance cierre en todo instante. Los valores están en el sistema de unidades activo.</p>
+    <form id="data-form" novalidate></form>
+    <div class="errbox" id="form-errors"></div>
+    <div class="modal-foot">
+      <button class="btn" id="form-apply">▶ Simular con mis datos</button>
+      <button class="btn secondary" id="form-load-example" type="button">Cargar valores del ejemplo</button>
+      <span class="spacer" style="flex:1"></span>
+      <span class="small muted">Tus datos se guardan en este navegador.</span>
+    </div>
+  </div>
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="js/units.js"></script>
+<script src="js/model.js"></script>
+<script src="js/data.js"></script>
+<script src="js/tank.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/theory.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

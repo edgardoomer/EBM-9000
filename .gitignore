@@ -1,0 +1,13 @@
+# Material con derechos de autor (extracto del libro de Fanchi usado como fuente): no se publica
+teoria/
+
+# Herramientas locales
+.claude/
+.netlify/
+node_modules/
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
